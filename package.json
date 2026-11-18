@@ -1,0 +1,31 @@
+{
+  "name": "neonsweeper",
+  "version": "2.077.0",
+  "description": "NEONSWEEPER — a cyberpunk 3D minesweeper built with three.js, anime.js and WebAudio.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js",
+    "test": "node tools/logic-test.mjs",
+    "test:ui": "node tools/interaction.mjs",
+    "test:visual": "node tools/visual-check.mjs",
+    "verify": "node tools/verify.mjs"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "keywords": [
+    "minesweeper",
+    "threejs",
+    "animejs",
+    "cyberpunk",
+    "webgl",
+    "game"
+  ],
+  "author": "NEONSWEEPER contributors",
+  "license": "MIT",
+  "type": "module",
+  "devDependencies": {
+    "playwright": "^1.65.1"
+  }
+}

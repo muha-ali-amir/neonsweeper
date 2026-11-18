@@ -1,0 +1,21 @@
+# Keep text files LF in the repository, regardless of the author's OS.
+* text=auto eol=lf
+
+# Windows launchers must keep CRLF to run reliably.
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
+# Never rewrite binary assets.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.webp binary
+*.ico binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.otf binary
+*.mp3 binary
+*.ogg binary
+*.wav binary

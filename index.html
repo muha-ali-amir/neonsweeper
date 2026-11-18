@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#03040a" />
+  <meta name="description" content="NEONSWEEPER — a cyberpunk 3D minesweeper experience built with three.js and anime.js." />
+  <title>NEONSWEEPER // MINEFIELD PROTOCOL</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%2303050c'/%3E%3Cpath d='M32 8 54 22v20L32 56 10 42V22Z' fill='none' stroke='%2323f4ff' stroke-width='3'/%3E%3Ccircle cx='32' cy='32' r='7' fill='%23ff2bd6'/%3E%3C/svg%3E" />
+  <link rel="stylesheet" href="fonts/fonts.css" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <div id="app" class="app is-booting">
+    <div id="stage" class="stage" aria-hidden="true"></div>
+
+    <div class="fx-layer" aria-hidden="true">
+      <div class="fx-grid"></div>
+      <div class="fx-scanlines"></div>
+      <div class="fx-grain"></div>
+      <div class="fx-vignette"></div>
+      <div class="fx-impact" id="impact-flash"></div>
+    </div>
+
+    <span class="corner corner-tl" aria-hidden="true"></span>
+    <span class="corner corner-tr" aria-hidden="true"></span>
+    <span class="corner corner-bl" aria-hidden="true"></span>
+    <span class="corner corner-br" aria-hidden="true"></span>
+    <div class="edge-label edge-label-left" aria-hidden="true">NIGHT CITY // SECTOR 07</div>
+    <div class="edge-label edge-label-right" aria-hidden="true">ICE DIVISION // ONLINE</div>
+
+    <header class="hud-top" id="hud-top">
+      <div class="brand">
+        <div class="brand-emblem" aria-hidden="true">
+          <span class="emblem-ring"></span>
+          <span class="emblem-hex"></span>
+          <span class="emblem-core"></span>
+        </div>
+        <div class="brand-copy">
+          <h1 class="glitch" data-text="NEONSWEEPER">NEONSWEEPER</h1>
+          <div class="brand-sub">
+            <span class="status-dot"></span>
+            MINEFIELD PROTOCOL <b>v2.077</b>
+          </div>
+        </div>
+      </div>
+
+      <nav class="difficulty" id="difficulty" aria-label="Select difficulty">
+        <button class="diff" data-preset="rookie" type="button" title="9 × 9 grid, 10 hostiles">
+          <span class="diff-name">ROOKIE</span>
+          <span class="diff-meta">9×9 · 10</span>
+        </button>
+        <button class="diff" data-preset="runner" type="button" title="16 × 16 grid, 40 hostiles">
+          <span class="diff-name">RUNNER</span>
+          <span class="diff-meta">16×16 · 40</span>
+        </button>
+        <button class="diff" data-preset="blackice" type="button" title="30 × 16 grid, 99 hostiles">
+          <span class="diff-name">BLACK ICE</span>
+          <span class="diff-meta">30×16 · 99</span>
+        </button>
+        <button class="diff diff-custom" data-preset="custom" type="button" title="Configure a custom grid">
+          <span class="diff-name">CUSTOM</span>
+          <span class="diff-meta" id="custom-meta">TUNE GRID</span>
+        </button>
+      </nav>
+
+      <div class="top-actions">
+        <button class="icon-btn icon-music is-on" id="music-btn" type="button" aria-pressed="true" aria-label="Toggle music" data-tip="MUSIC // M">
+          <span class="eq" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+        </button>
+        <button class="icon-btn icon-sfx is-on" id="sfx-btn" type="button" aria-pressed="true" aria-label="Toggle sound effects" data-tip="SFX // S">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path class="sfx-wave" d="M16 8.5c1.2 1.1 1.2 5.9 0 7M19 6c2.3 2.3 2.3 9.7 0 12" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+        </button>
+        <button class="icon-btn" id="fullscreen-btn" type="button" aria-label="Toggle fullscreen" data-tip="FULLSCREEN">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="square"/></svg>
+        </button>
+        <button class="icon-btn icon-help" id="help-btn" type="button" aria-label="Open field manual" data-tip="FIELD MANUAL // H">
+          <span>?</span>
+        </button>
+      </div>
+    </header>
+
+    <aside class="panel panel-left" id="panel-left">
+      <div class="panel-edge" aria-hidden="true"></div>
+      <div class="panel-head">
+        <span><i class="slash">//</i> SYS.MONITOR</span>
+        <span class="live"><i></i>LIVE</span>
+      </div>
+      <div class="panel-body">
+        <div class="time-block">
+          <div class="micro-label">SESSION TIME</div>
+          <div class="time-value" id="timer">00:00</div>
+          <div class="time-strip"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+        </div>
+
+        <div class="readouts">
+          <div class="readout">
+            <span class="ro-label">HOSTILES</span>
+            <span class="ro-value danger" id="mine-count">40</span>
+          </div>
+          <div class="readout">
+            <span class="ro-label">SCORE</span>
+            <span class="ro-value" id="score">0</span>
+          </div>
+        </div>
+
+        <div class="threat">
+          <div class="threat-top">
+            <span class="micro-label">THREAT INDEX</span>
+            <b id="threat-label">MID</b>
+          </div>
+          <div class="threat-track"><i id="threat-fill"></i><em></em></div>
+          <div class="threat-notes">
+            <span id="threat-note">TRACE SIGNAL DETECTED</span>
+            <span id="threat-percent">24%</span>
+          </div>
+        </div>
+
+        <div class="record">
+          <span class="micro-label">PERSONAL BEST</span>
+          <b id="best-time">--:--</b>
+        </div>
+      </div>
+      <span class="panel-corner panel-corner-b" aria-hidden="true"></span>
+    </aside>
+
+    <aside class="panel panel-right" id="panel-right">
+      <div class="panel-edge" aria-hidden="true"></div>
+      <div class="panel-head">
+        <span><i class="slash">//</i> MISSION LOG</span>
+        <span class="live"><i></i>STREAM</span>
+      </div>
+      <div class="panel-body">
+        <ul class="log-list" id="mission-log" aria-live="polite"></ul>
+        <div class="log-fade" aria-hidden="true"></div>
+
+        <div class="section-title"><span>//</span> BEST RUNS</div>
+        <div class="best-list" id="best-list"></div>
+
+        <div class="stability">
+          <div class="stability-head">
+            <span class="micro-label">GRID STABILITY</span>
+            <span id="stability-val">76%</span>
+          </div>
+          <div class="stability-bars" id="stability-bars" aria-hidden="true"></div>
+        </div>
+      </div>
+      <span class="panel-corner panel-corner-b" aria-hidden="true"></span>
+    </aside>
+
+    <div class="mobile-readout" id="mobile-readout">
+      <div><span>TIME</span><b id="m-timer">00:00</b></div>
+      <div class="mr-divider"></div>
+      <div><span>HOSTILES</span><b id="m-mines">40</b></div>
+      <div class="mr-divider"></div>
+      <div><span>SCORE</span><b id="m-score">0</b></div>
+    </div>
+
+    <footer class="hud-bottom" id="hud-bottom">
+      <div class="hints" aria-hidden="true">
+        <span><kbd>LMB</kbd> REVEAL</span>
+        <span><kbd>RMB</kbd> FLAG</span>
+        <span><kbd>MMB</kbd> CHORD</span>
+        <span><kbd>DRAG</kbd> ORBIT</span>
+        <span><kbd>R</kbd> RESET</span>
+      </div>
+      <section class="countermeasures" aria-label="Countermeasures">
+        <div class="cm-label"><span>//</span> COUNTERMEASURES</div>
+        <div class="cm-cards">
+          <button class="ability ability-scan" id="scan-btn" type="button" data-ability="scan">
+            <span class="ability-icon" aria-hidden="true">⌖</span>
+            <span class="ability-copy"><b>DEEP SCAN</b><small>REVEAL A SAFE SECTOR</small></span>
+            <span class="ability-meta">
+              <span class="ability-charges" data-scan-charges>×1</span>
+              <span class="key">Q</span>
+            </span>
+          </button>
+          <button class="ability ability-ice" id="defuse-btn" type="button" data-ability="defuse">
+            <span class="ability-icon" aria-hidden="true">✦</span>
+            <span class="ability-copy"><b>ICE BREAK</b><small>FLAG ONE HOSTILE</small></span>
+            <span class="ability-meta">
+              <span class="ability-charges" data-defuse-charges>×1</span>
+              <span class="key">E</span>
+            </span>
+          </button>
+          <button class="ability ability-sonar" id="sonar-btn" type="button" data-ability="sonar">
+            <span class="ability-icon" aria-hidden="true">◎</span>
+            <span class="ability-copy"><b>SONAR PING</b><small>SWEEP A 5×5 SECTOR</small></span>
+            <span class="ability-meta">
+              <span class="ability-charges" data-sonar-charges>×2</span>
+              <span class="key">T</span>
+            </span>
+          </button>
+          <button class="ability ability-ghost" id="ghost-btn" type="button" data-ability="ghost">
+            <span class="ability-icon" aria-hidden="true">◈</span>
+            <span class="ability-copy"><b>GHOST PROTOCOL</b><small>ABSORB ONE HOSTILE HIT</small></span>
+            <span class="ability-meta">
+              <span class="ability-charges" data-ghost-charges>×1</span>
+              <span class="key">G</span>
+            </span>
+          </button>
+          <button class="ability ability-siphon" id="siphon-btn" type="button" data-ability="siphon">
+            <span class="ability-icon" aria-hidden="true">⧫</span>
+            <span class="ability-copy"><b>DATA SIPHON</b><small>3 TOKENS → REFUND CHARGE</small></span>
+            <span class="ability-meta">
+              <span class="ability-charges" data-siphon-tokens>0/3</span>
+              <span class="key">X</span>
+            </span>
+          </button>
+        </div>
+      </section>
+      <div class="bottom-actions">
+        <button class="btn btn-ghost mobile-scan" id="scan-mobile" type="button" data-ability="scan">SCAN <i data-scan-charges>×1</i></button>
+        <button class="btn btn-ghost mobile-defuse" id="defuse-mobile" type="button" data-ability="defuse">ICE <i data-defuse-charges>×1</i></button>
+        <button class="btn btn-ghost mobile-sonar" id="sonar-mobile" type="button" data-ability="sonar">PING <i data-sonar-charges>×2</i></button>
+        <button class="btn btn-ghost mobile-ghost" id="ghost-mobile" type="button" data-ability="ghost">GHOST <i data-ghost-charges>×1</i></button>
+        <button class="btn btn-ghost mobile-siphon" id="siphon-mobile" type="button" data-ability="siphon">SIPHON <i data-siphon-tokens>0/3</i></button>
+        <button class="btn btn-ghost flag-btn" id="flag-btn" type="button" aria-pressed="false">
+          <span class="btn-icon">⚑</span> FLAG MODE <span class="key-inline">F</span>
+        </button>
+        <button class="btn btn-primary" id="new-game-btn" type="button">
+          <span class="btn-icon">↻</span> NEW RUN
+        </button>
+      </div>
+    </footer>
+
+    <div class="ticker" aria-hidden="true">
+      <div class="ticker-label">NETFEED</div>
+      <div class="ticker-window"><div class="ticker-track" id="ticker-track"></div></div>
+      <div class="ticker-mark">██//</div>
+    </div>
+
+    <div class="toast-layer" id="toast-layer" aria-live="polite"></div>
+
+    <!-- ————— BOOT / ATTRACT SCREEN ————— -->
+    <div class="overlay overlay-boot" id="boot">
+      <div class="boot-frame">
+        <div class="boot-topline">
+          <span><i class="rec-dot"></i> UPLINK ESTABLISHED</span>
+          <span id="boot-coords">35.6895°N // 139.6917°E</span>
+          <span class="boot-version">OS 2.077.4</span>
+        </div>
+
+        <div class="boot-kicker"><span></span> BLACK ICE DIVISION PRESENTS <span></span></div>
+        <div class="boot-title-wrap">
+          <h2 class="boot-title glitch" data-text="NEONSWEEPER">NEONSWEEPER</h2>
+          <div class="boot-sub">MINE<span>//</span>FIELD<span>//</span>PROTOCOL</div>
+        </div>
+
+        <div class="boot-grid">
+          <div class="boot-brief">
+            <div class="boot-line"><span>01</span> BREACH THE GRID. FLAG THE HOSTILES.</div>
+            <div class="boot-line"><span>02</span> NUMBERS READ ADJACENT ICE SIGNATURES.</div>
+            <div class="boot-line"><span>03</span> CLEAR EVERY SAFE NODE BEFORE THE TRACE LOCKS.</div>
+          </div>
+          <div class="boot-meta">
+            <div><span>GRID</span><b id="boot-grid">16 × 16</b></div>
+            <div><span>HOSTILES</span><b id="boot-mines">040</b></div>
+            <div><span>THREAT</span><b id="boot-threat">MID</b></div>
+          </div>
+        </div>
+
+        <div class="boot-bottom">
+          <div class="boot-audio">
+            <span class="pulse-dot"></span>
+            AUDIO LINK ARMED — HEADPHONES RECOMMENDED
+          </div>
+          <button class="start-btn" id="jack-in-btn" type="button">
+            <span class="start-glitch" aria-hidden="true"></span>
+            <span class="start-label">JACK IN</span>
+            <span class="start-sub">INITIATE SEQUENCE // CLICK TO ARM AUDIO</span>
+          </button>
+        </div>
+
+        <div class="boot-footer">
+          <span>DRAG TO INSPECT THE GRID</span>
+          <span class="boot-progress"><i></i></span>
+          <span>READY // AWAITING INPUT</span>
+        </div>
+      </div>
+      <div class="boot-scan" aria-hidden="true"></div>
+      <div class="boot-side boot-side-left" aria-hidden="true">ICE DIVISION<br />BLACK SITE 07</div>
+      <div class="boot-side boot-side-right" aria-hidden="true">SECURE CHANNEL<br />ENCRYPTED 4096-BIT</div>
+    </div>
+
+    <!-- ————— END SCREEN ————— -->
+    <div class="overlay overlay-end is-hidden" id="end-screen">
+      <div class="end-panel" id="end-panel">
+        <button class="end-close" id="end-close" type="button" aria-label="Dismiss report">×</button>
+        <div class="end-top">
+          <span id="end-code">MISSION REPORT // 001</span>
+          <span id="end-date">2077.11.17</span>
+        </div>
+        <div class="end-status" id="end-status">STATUS // SECURE</div>
+        <h2 class="end-title glitch" id="end-title" data-text="SECTOR SECURED">SECTOR SECURED</h2>
+        <p class="end-sub" id="end-sub">ALL HOSTILES NEUTRALIZED. GRID UNDER CONTROL.</p>
+
+        <div class="end-stats">
+          <div><span>TIME</span><b id="end-time">00:00</b></div>
+          <div><span>SCORE</span><b id="end-score">0</b></div>
+          <div><span>HOSTILES</span><b id="end-mines">40</b></div>
+          <div><span>DECRYPTED</span><b id="end-cells">0%</b></div>
+        </div>
+
+        <div class="end-record is-hidden" id="end-record">★ NEW PERSONAL BEST ★</div>
+
+        <div class="end-actions">
+          <button class="btn btn-primary btn-wide" id="end-again" type="button">RUN IT BACK</button>
+          <button class="btn btn-ghost btn-wide" id="end-change" type="button">CHANGE SECTOR</button>
+        </div>
+        <div class="end-foot">// SIGNAL TERMINATED BY NEONSWEEPER OS</div>
+      </div>
+    </div>
+
+    <!-- ————— FIELD MANUAL ————— -->
+    <div class="overlay overlay-modal is-hidden" id="help-modal">
+      <div class="modal modal-help">
+        <div class="modal-head">
+          <span><i class="slash">//</i> FIELD MANUAL</span>
+          <button class="modal-close" type="button" data-close="help-modal" aria-label="Close manual">×</button>
+        </div>
+        <div class="modal-body help-grid">
+          <section>
+            <h3><span>01</span> CONTROLS</h3>
+            <dl class="control-list">
+              <div><dt><kbd>LMB</kbd></dt><dd>Reveal node / chord a satisfied number</dd></div>
+              <div><dt><kbd>RMB</kbd> / <kbd>SHIFT</kbd></dt><dd>Flag a suspected hostile</dd></div>
+              <div><dt><kbd>MMB</kbd></dt><dd>Chord — open all unflagged neighbors</dd></div>
+              <div><dt><kbd>DRAG</kbd></dt><dd>Orbit the grid. Scroll to zoom</dd></div>
+              <div><dt><kbd>TAP</kbd> / <kbd>HOLD</kbd></dt><dd>Tap to reveal, hold to flag on touch</dd></div>
+              <div><dt><kbd>F</kbd></dt><dd>Toggle flag mode (touch friendly)</dd></div>
+              <div><dt><kbd>Q</kbd> / <kbd>E</kbd></dt><dd>Deep Scan / Ice Break</dd></div>
+              <div><dt><kbd>T</kbd> / <kbd>G</kbd></dt><dd>Arm Sonar Ping / inspect Ghost shield</dd></div>
+              <div><dt><kbd>X</kbd></dt><dd>Data Siphon — spend 3 tokens for a charge refund</dd></div>
+              <div><dt><kbd>R</kbd> / <kbd>N</kbd></dt><dd>New run</dd></div>
+              <div><dt><kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd></dt><dd>Switch sector difficulty</dd></div>
+              <div><dt><kbd>M</kbd> / <kbd>S</kbd></dt><dd>Mute soundtrack / sound effects</dd></div>
+            </dl>
+          </section>
+          <section>
+            <h3><span>02</span> PROTOCOL</h3>
+            <p class="manual-copy">The grid hides hostile ICE nodes. Reveal every safe node to complete the breach. A number tells you how many hostiles touch that node — diagonals count.</p>
+            <p class="manual-copy">Your first breach is always safe and opens a pocket of clean data. Flag hostiles to keep track, then chord a number when its surrounding flags match.</p>
+            <p class="manual-copy"><b class="text-accent">DEEP SCAN</b> reveals a guaranteed safe sector. <b class="text-ice">ICE BREAK</b> instantly flags one hostile. One charge each — spend them wisely.</p>
+            <p class="manual-copy"><b class="text-sonar">SONAR PING</b> sweeps a 5×5 area and reports the hostile count without revealing a single tile. <b class="text-ghost">GHOST PROTOCOL</b> is a passive shield that absorbs your first hostile breach. <b class="text-siphon">DATA SIPHON</b> banks one token per three correct manual flags; three tokens refund one spent charge, up to twice per run.</p>
+          </section>
+          <section class="audio-mix">
+            <h3><span>03</span> AUDIO MIX</h3>
+            <label class="slider-row">
+              <span>SOUNDTRACK</span>
+              <input type="range" id="music-volume" min="0" max="100" value="55" />
+              <b id="music-volume-val">55</b>
+            </label>
+            <label class="slider-row">
+              <span>SFX</span>
+              <input type="range" id="sfx-volume" min="0" max="100" value="70" />
+              <b id="sfx-volume-val">70</b>
+            </label>
+            <div class="manual-note"><i></i> ALL AUDIO IS SYNTHESIZED IN REAL TIME. NO SAMPLES. NO MERCY.</div>
+          </section>
+        </div>
+        <div class="modal-foot">
+          <span>PRESS <kbd>ESC</kbd> TO CLOSE</span>
+          <span>NEONSWEEPER // FIELD MANUAL v2.077</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ————— CUSTOM GRID ————— -->
+    <div class="overlay overlay-modal is-hidden" id="custom-modal">
+      <div class="modal modal-custom">
+        <div class="modal-head">
+          <span><i class="slash">//</i> GRID CONFIGURATION</span>
+          <button class="modal-close" type="button" data-close="custom-modal" aria-label="Close grid configuration">×</button>
+        </div>
+        <div class="modal-body">
+          <p class="manual-copy custom-intro">Define your own kill zone. Higher density = higher score multiplier, lower life expectancy.</p>
+          <div class="custom-readout">
+            <div><span>COLS</span><b id="custom-cols-val">16</b></div>
+            <div><span>ROWS</span><b id="custom-rows-val">16</b></div>
+            <div><span>HOSTILES</span><b id="custom-mines-val">40</b></div>
+            <div><span>DENSITY</span><b id="custom-density-val">15%</b></div>
+          </div>
+          <div class="sliders">
+            <label class="slider-row">
+              <span>GRID WIDTH</span>
+              <input type="range" id="custom-cols" min="6" max="30" value="16" />
+              <b>6 — 30</b>
+            </label>
+            <label class="slider-row">
+              <span>GRID DEPTH</span>
+              <input type="range" id="custom-rows" min="6" max="20" value="16" />
+              <b>6 — 20</b>
+            </label>
+            <label class="slider-row">
+              <span>HOSTILE DENSITY</span>
+              <input type="range" id="custom-mines" min="5" max="168" value="40" />
+              <b id="custom-mines-max">MAX 168</b>
+            </label>
+          </div>
+          <div class="custom-preview">
+            <span id="custom-preview-text">16 × 16 GRID // 40 HOSTILES // 15% DENSITY</span>
+            <span class="preview-warn" id="custom-warn"></span>
+          </div>
+          <button class="btn btn-primary btn-block" id="custom-deploy" type="button">DEPLOY GRID</button>
+        </div>
+        <div class="modal-foot">
+          <span>FIRST BREACH REMAINS SAFE</span>
+          <span>GRID LIMITS // 6—30 × 6—20</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ————— FATAL / PROTOCOL ————— -->
+    <div class="fatal is-hidden" id="fatal">
+      <div class="fatal-box">
+        <div class="fatal-kicker">// SYSTEM FAILURE</div>
+        <h2>UPLINK FAILED</h2>
+        <p id="fatal-message">The grid could not be initialized.</p>
+        <button class="btn btn-primary" type="button" onclick="location.reload()">RETRY UPLINK</button>
+      </div>
+    </div>
+
+    <div class="fatal protocol-warning is-hidden" id="protocol-warning">
+      <div class="fatal-box">
+        <div class="fatal-kicker">// LOCAL SECURITY BLOCK</div>
+        <h2>START THE SERVER</h2>
+        <p>This game uses ES modules, so the browser blocks local file imports. Run <code>start.bat</code> (or <code>npm start</code>) and open <code>http://localhost:5173</code>.</p>
+        <button class="btn btn-primary" type="button" onclick="location.href='http://localhost:5173'">OPEN LOCALHOST</button>
+      </div>
+    </div>
+  </div>
+
+  <noscript>
+    <div class="fatal"><div class="fatal-box"><h2>JAVASCRIPT OFFLINE</h2><p>Enable JavaScript to jack in.</p></div></div>
+  </noscript>
+
+  <script>
+    if (location.protocol === 'file:') {
+      document.addEventListener('DOMContentLoaded', function () {
+        document.getElementById('protocol-warning').classList.remove('is-hidden');
+      });
+    }
+  </script>
+  <script src="vendor/anime/anime.min.js"></script>
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "./vendor/three/three.module.js",
+        "three/addons/": "./vendor/three/addons/"
+      }
+    }
+  </script>
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>
