@@ -150,10 +150,6 @@ npm run test:visual         # responsive collision checks + README hero capture
 
 `npm test` needs no browser. `npm run verify`, `npm run test:ui` and `npm run test:visual` expect the local server at <http://localhost:5173> and Chrome installed.
 
-## Contributing
-
-Issues and pull requests are welcome. Run `npm test` before sending a change; for UI work, also start the server and run `npm run verify` and `npm run test:visual`.
-
 ## Third-party assets
 
 - **three.js r180** — MIT, license in `vendor/three/LICENSE`.
