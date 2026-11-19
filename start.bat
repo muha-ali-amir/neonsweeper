@@ -15,6 +15,6 @@ if errorlevel 1 (
 echo.
 echo  Starting NEONSWEEPER local uplink...
 echo.
-node server.js
+node tools\serve.js
 if errorlevel 1 pause
 endlocal

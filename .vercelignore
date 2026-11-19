@@ -1,0 +1,5 @@
+# Local tooling is not part of the static site.
+node_modules/
+shots/
+tools/
+.github/

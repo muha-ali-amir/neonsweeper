@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /* ------------------------------------------------------------------ *
  *  NEONSWEEPER // zero-dependency local static server
- *  Usage: npm start   (or: node server.js)
+ *  Usage: npm start   (or: node tools/serve.js)
  *  Opens http://localhost:5173 automatically.
  * ------------------------------------------------------------------ */
 
@@ -11,7 +11,7 @@ import path from 'node:path';
 import { spawn } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
-const ROOT = path.dirname(fileURLToPath(import.meta.url));
+const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const PORT = Number(process.env.PORT) || 5173;
 const HOST = '127.0.0.1';
 const BASE_URL = `http://localhost:${PORT}`;

@@ -21,10 +21,10 @@ That's it — **no `npm install` is required to play**. three.js, anime.js and a
 | --- | --- |
 | `npm start` | Start the game server and open the browser |
 | `npm start -- --no-open` | Start without opening a browser |
-| `node server.js --no-open` | Same, without npm |
+| `node tools/serve.js --no-open` | Same, without npm |
 | `$env:PORT=5174; npm start` | Use a different port (PowerShell) |
 
-**Static hosting:** the game has no server-side code. Host the repository root on GitHub Pages, Netlify or Cloudflare Pages and it runs as-is; `server.js` exists only to make local play trivial.
+**Static hosting:** the game has no server-side code. Host the repository root on GitHub Pages, Netlify, Cloudflare Pages or Vercel and it runs as-is. `tools/serve.js` is a local-only convenience; it deliberately lives outside the repository root so Vercel's zero-config Node backend detection cannot mistake it for the app server. The included `vercel.json` pins Vercel to a static deployment with no build step.
 
 ## Gameplay
 
@@ -91,7 +91,6 @@ The top-right buttons add fullscreen and direct audio toggles. The field manual 
 ```text
 .
 ├── index.html          # DOM, overlays, modals, import map
-├── server.js           # zero-dependency local static server
 ├── start.bat           # Windows launcher
 ├── package.json        # scripts and the Playwright dev dependency
 ├── package-lock.json
@@ -113,12 +112,13 @@ The top-right buttons add fullscreen and direct audio toggles. The field manual 
 ├── fonts/              # local woff2 fonts + OFL licenses
 ├── docs/
 │   └── hero.jpg        # README screenshot
-├── tools/              # logic, verification, UI and layout test suites
+├── tools/              # local server plus logic, verification and UI suites
 ├── .github/workflows/  # GitHub Actions logic-test workflow
 ├── .editorconfig       # whitespace and encoding defaults
 ├── .gitattributes      # line endings and binary assets
 ├── .gitignore
 ├── .nojekyll           # keep GitHub Pages from running Jekyll
+├── vercel.json         # static Vercel deployment, no build step
 ├── LICENSE
 ├── SECURITY.md         # vulnerability-reporting policy
 └── README.md
