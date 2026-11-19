@@ -48,6 +48,30 @@
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
+/* Sector accents are mirrored as an attribute so a theme switch is a plain
+   selector change: custom properties alone can miss a compositor repaint.
+   js/ui.js still writes the same values inline for custom sectors. */
+:root[data-sector='rookie'] {
+  --accent: #23f4ff;
+  --accent-rgb: 35, 244, 255;
+  --accent-soft: rgba(35, 244, 255, 0.16);
+}
+:root[data-sector='runner'] {
+  --accent: #ff2bd6;
+  --accent-rgb: 255, 43, 214;
+  --accent-soft: rgba(255, 43, 214, 0.16);
+}
+:root[data-sector='blackice'] {
+  --accent: #ffd42a;
+  --accent-rgb: 255, 212, 42;
+  --accent-soft: rgba(255, 212, 42, 0.16);
+}
+:root[data-sector='custom'] {
+  --accent: #57ff9a;
+  --accent-rgb: 87, 255, 154;
+  --accent-soft: rgba(87, 255, 154, 0.16);
+}
+
 * { box-sizing: border-box; }
 
 html, body {

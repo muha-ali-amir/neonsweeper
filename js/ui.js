@@ -494,6 +494,7 @@ export class GameUI {
   setPresetVisual(presetId, config, accent) {
     this.currentPreset = presetId;
     this.currentConfig = config;
+
     $$('.diff').forEach((btn) => {
       const active = btn.dataset.preset === presetId;
       btn.classList.toggle('is-active', active);
@@ -504,15 +505,39 @@ export class GameUI {
       customMeta.textContent = presetId === 'custom' ? `${config.cols}×${config.rows} · ${config.mines}` : 'TUNE GRID';
     }
     const hex = accent || this.presets.find((p) => p.id === presetId)?.accent || '#23f4ff';
-    this.applyAccent(hex);
+    this.applyAccent(hex, presetId);
   }
 
-  applyAccent(hex) {
+  applyAccent(hex, sector = this.currentPreset) {
     const { r, g, b } = hexToRgb(hex);
     const root = document.documentElement;
+    root.dataset.sector = sector;
     root.style.setProperty('--accent', hex);
     root.style.setProperty('--accent-rgb', `${r}, ${g}, ${b}`);
     root.style.setProperty('--accent-soft', `rgba(${r}, ${g}, ${b}, 0.16)`);
+    if (this.el.app) {
+      this.el.app.style.setProperty('--accent', hex);
+      this.el.app.style.setProperty('--accent-rgb', `${r}, ${g}, ${b}`);
+      this.el.app.style.setProperty('--accent-soft', `rgba(${r}, ${g}, ${b}, 0.16)`);
+    }
+    this.repaintHud();
+  }
+
+  /**
+   * Changing a custom property is not always enough on its own to make the
+   * compositor re-raster the HUD layers, which can leave the previous sector
+   * tint on screen. Toggling layout off/on inside a single task drops those
+   * cached layers without ever painting the hidden state.
+   */
+  repaintHud() {
+    const targets = [this.el.hudTop, this.el.panelLeft, this.el.panelRight, this.el.hudBottom].filter(Boolean);
+    if (!targets.length) return;
+    const previous = targets.map((el) => el.style.display);
+    for (const el of targets) el.style.display = 'none';
+    void targets[0].offsetWidth;
+    targets.forEach((el, i) => {
+      el.style.display = previous[i];
+    });
   }
 
   setTicker(config) {

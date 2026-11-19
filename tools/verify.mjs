@@ -44,6 +44,30 @@ async function state(page) {
   });
 }
 
+/** The HUD accent, the active selector and the 3D scene must always agree. */
+async function accentState(page) {
+  return page.evaluate(() => {
+    const app = window.__NEONSWEEPER__;
+    const root = getComputedStyle(document.documentElement);
+    const active = document.querySelector('.diff.is-active');
+    return {
+      sector: document.documentElement.dataset.sector,
+      accent: root.getPropertyValue('--accent').trim(),
+      timer: getComputedStyle(document.getElementById('timer')).color,
+      activePreset: active?.dataset.preset,
+      scene: app.scene.accentHex,
+    };
+  });
+}
+
+function checkAccent(a, presetId, hex, rgb) {
+  assert.equal(a.activePreset, presetId, 'selector should highlight the chosen sector');
+  assert.equal(a.sector, presetId, 'root data-sector should follow the chosen sector');
+  assert.equal(a.accent.toLowerCase(), hex, 'CSS accent should follow the chosen sector');
+  assert.equal(a.timer, rgb, 'accent-tinted HUD text should follow the chosen sector');
+  assert.equal(a.scene.toLowerCase(), hex, '3D scene accent should follow the chosen sector');
+}
+
 async function project(page, index) {
   return page.evaluate((idx) => {
     const app = window.__NEONSWEEPER__;
@@ -148,21 +172,34 @@ assert.equal(s.flagMode, false, 'game hotkeys should not fire while a modal is o
 await page.keyboard.press('Escape');
 await page.waitForTimeout(400);
 
+// Accent: the HUD must switch on the click, not after the board rebuild
+await page.click('[data-preset="blackice"]');
+await page.waitForTimeout(40);
+const quickAccent = await accentState(page);
+assert.equal(quickAccent.activePreset, 'blackice', 'selector should switch immediately');
+assert.equal(quickAccent.accent.toLowerCase(), '#ffd42a', 'accent should switch immediately');
+await page.waitForTimeout(3200);
+checkAccent(await accentState(page), 'blackice', '#ffd42a', 'rgb(255, 212, 42)');
+await waitInteractive(page);
+
 // Keyboard: difficulty presets 1/2/3
 await page.keyboard.press('1');
 await page.waitForTimeout(3200);
 s = await state(page);
 assert.equal(s.presetId, 'rookie');
 assert.deepEqual(s.config, { cols: 9, rows: 9, mines: 10 });
+checkAccent(await accentState(page), 'rookie', '#23f4ff', 'rgb(35, 244, 255)');
 await page.keyboard.press('3');
 await page.waitForTimeout(3200);
 s = await state(page);
 assert.equal(s.presetId, 'blackice');
 assert.deepEqual(s.config, { cols: 30, rows: 16, mines: 99 });
+checkAccent(await accentState(page), 'blackice', '#ffd42a', 'rgb(255, 212, 42)');
 await page.keyboard.press('2');
 await page.waitForTimeout(3200);
 s = await state(page);
 assert.equal(s.presetId, 'runner');
+checkAccent(await accentState(page), 'runner', '#ff2bd6', 'rgb(255, 43, 214)');
 await waitInteractive(page);
 
 // Keyboard: new run

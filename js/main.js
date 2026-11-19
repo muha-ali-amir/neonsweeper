@@ -23,7 +23,7 @@ const SETTINGS_KEY = 'neonsweeper.settings.v1';
 /** Resolve after the browser has painted the current DOM state. */
 const nextPaint = () =>
   new Promise((resolve) => {
-    requestAnimationFrame(() => setTimeout(resolve, 0));
+    requestAnimationFrame(() => requestAnimationFrame(() => setTimeout(resolve, 0)));
   });
 
 class NeonSweeperApp {
@@ -302,6 +302,7 @@ class NeonSweeperApp {
     // Paint the selector/accent immediately, then rebuild the heavier 3D board.
     const request = ++this.presetRequest;
     this.ui.setPresetVisual(this.presetId, this.config, preset.accent);
+    this.scene.setAccent(preset.accent);
     await nextPaint();
     if (request !== this.presetRequest) return;
     this.buildRun();
@@ -318,6 +319,7 @@ class NeonSweeperApp {
 
     const request = ++this.presetRequest;
     this.ui.setPresetVisual('custom', this.config, '#57ff9a');
+    this.scene.setAccent('#57ff9a');
     await nextPaint();
     if (request !== this.presetRequest) return;
     this.buildRun();
