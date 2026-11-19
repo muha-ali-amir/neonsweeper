@@ -9,7 +9,7 @@ A cyberpunk 3D Minesweeper built with **three.js**, **anime.js** and the **Web A
 ## Run it
 
 1. Install [Node.js](https://nodejs.org/) 20 or newer.
-2. Double-click **`start.bat`** (Windows) or run:
+2. Double-click **`tools/start.bat`** (Windows) or run:
 
    ```bash
    npm start
@@ -93,12 +93,12 @@ The top-right buttons add fullscreen and direct audio toggles. The field manual 
 ```text
 .
 ├── index.html          # DOM, overlays, modals, import map
-├── favicon.svg         # game logo source
-├── favicon.ico         # multi-size browser icon
-├── apple-touch-icon.png
-├── start.bat           # Windows launcher
+├── favicon.ico         # browser icon (root for Vercel avatar detection)
 ├── package.json        # scripts and the Playwright dev dependency
 ├── package-lock.json
+├── assets/
+│   ├── favicon.svg     # game logo source
+│   └── apple-touch-icon.png
 ├── css/
 │   ├── style.css       # imports the four modules below
 │   ├── base.css        # theme, atmosphere, layout primitives
@@ -118,8 +118,10 @@ The top-right buttons add fullscreen and direct audio toggles. The field manual 
 ├── docs/
 │   ├── hero.jpg        # README screenshot
 │   └── logo.png        # 512px logo for the Vercel avatar
-├── tools/              # local server plus logic, verification and UI suites
-├── .github/workflows/  # GitHub Actions logic-test workflow
+├── tools/              # local server, Windows launcher, test suites
+├── .github/
+│   ├── SECURITY.md     # vulnerability-reporting policy
+│   └── workflows/      # GitHub Actions logic-test workflow
 ├── .editorconfig       # whitespace and encoding defaults
 ├── .gitattributes      # line endings and binary assets
 ├── .gitignore
@@ -127,7 +129,6 @@ The top-right buttons add fullscreen and direct audio toggles. The field manual 
 ├── .vercelignore       # dev-only files excluded from deployments
 ├── vercel.json         # static Vercel deployment, no build step
 ├── LICENSE
-├── SECURITY.md         # vulnerability-reporting policy
 └── README.md
 ```
 
