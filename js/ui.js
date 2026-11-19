@@ -484,6 +484,14 @@ export class GameUI {
   /* ————————————————————————— presets / HUD ————————————————————————— */
 
   setPreset(presetId, config, accent) {
+    this.setPresetVisual(presetId, config, accent);
+    this.setTicker(config);
+    this.setBootMeta(config);
+    this.setBestTime(this.getBestForCurrent());
+  }
+
+  /** Cheap selector + accent refresh that can be painted before a board rebuild. */
+  setPresetVisual(presetId, config, accent) {
     this.currentPreset = presetId;
     this.currentConfig = config;
     $$('.diff').forEach((btn) => {
@@ -497,9 +505,6 @@ export class GameUI {
     }
     const hex = accent || this.presets.find((p) => p.id === presetId)?.accent || '#23f4ff';
     this.applyAccent(hex);
-    this.setTicker(config);
-    this.setBootMeta(config);
-    this.setBestTime(this.getBestForCurrent());
   }
 
   applyAccent(hex) {

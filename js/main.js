@@ -20,6 +20,12 @@ import { AudioEngine } from './audio.js';
 
 const SETTINGS_KEY = 'neonsweeper.settings.v1';
 
+/** Resolve after the browser has painted the current DOM state. */
+const nextPaint = () =>
+  new Promise((resolve) => {
+    requestAnimationFrame(() => setTimeout(resolve, 0));
+  });
+
 class NeonSweeperApp {
   constructor() {
     this.hasStarted = false;
@@ -44,6 +50,7 @@ class NeonSweeperApp {
     this.ui = null;
     this.modalOpen = false;
     this.raf = null;
+    this.presetRequest = 0;
   }
 
   async init() {
@@ -291,6 +298,12 @@ class NeonSweeperApp {
     if (!preset) return;
     this.presetId = preset.id;
     this.config = { cols: preset.cols, rows: preset.rows, mines: preset.mines };
+
+    // Paint the selector/accent immediately, then rebuild the heavier 3D board.
+    const request = ++this.presetRequest;
+    this.ui.setPresetVisual(this.presetId, this.config, preset.accent);
+    await nextPaint();
+    if (request !== this.presetRequest) return;
     this.buildRun();
   }
 
@@ -302,6 +315,11 @@ class NeonSweeperApp {
     this.presetId = 'custom';
     this.config = { cols, rows, mines };
     this.customConfig = { cols, rows, mines };
+
+    const request = ++this.presetRequest;
+    this.ui.setPresetVisual('custom', this.config, '#57ff9a');
+    await nextPaint();
+    if (request !== this.presetRequest) return;
     this.buildRun();
   }
 
@@ -311,6 +329,7 @@ class NeonSweeperApp {
 
   newRun() {
     if (!this.hasStarted) return;
+    this.presetRequest += 1;
     this.buildRun();
   }
 
