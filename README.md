@@ -1,5 +1,7 @@
 # NEONSWEEPER // MINEFIELD PROTOCOL
 
+[**▶ PLAY IT LIVE — neonsweeper.vercel.app**](https://neonsweeper.vercel.app/)
+
 A cyberpunk 3D Minesweeper built with **three.js**, **anime.js** and the **Web Audio API**. No framework, no build step, and no external runtime assets — every library, font, texture and sound is local or synthesized in the browser.
 
 ![NEONSWEEPER gameplay](docs/hero.jpg)
@@ -91,6 +93,9 @@ The top-right buttons add fullscreen and direct audio toggles. The field manual 
 ```text
 .
 ├── index.html          # DOM, overlays, modals, import map
+├── favicon.svg         # game logo source
+├── favicon.ico         # multi-size browser icon
+├── apple-touch-icon.png
 ├── start.bat           # Windows launcher
 ├── package.json        # scripts and the Playwright dev dependency
 ├── package-lock.json
@@ -111,13 +116,15 @@ The top-right buttons add fullscreen and direct audio toggles. The field manual 
 ├── vendor/             # three.js r180 + anime.js 3.2.2 (MIT)
 ├── fonts/              # local woff2 fonts + OFL licenses
 ├── docs/
-│   └── hero.jpg        # README screenshot
+│   ├── hero.jpg        # README screenshot
+│   └── logo.png        # 512px logo for the Vercel avatar
 ├── tools/              # local server plus logic, verification and UI suites
 ├── .github/workflows/  # GitHub Actions logic-test workflow
 ├── .editorconfig       # whitespace and encoding defaults
 ├── .gitattributes      # line endings and binary assets
 ├── .gitignore
 ├── .nojekyll           # keep GitHub Pages from running Jekyll
+├── .vercelignore       # dev-only files excluded from deployments
 ├── vercel.json         # static Vercel deployment, no build step
 ├── LICENSE
 ├── SECURITY.md         # vulnerability-reporting policy

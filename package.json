@@ -24,6 +24,11 @@
   ],
   "author": "NEONSWEEPER contributors",
   "license": "MIT",
+  "homepage": "https://neonsweeper.vercel.app/",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/muha-ali-amir/neonsweeper.git"
+  },
   "type": "module",
   "devDependencies": {
     "playwright": "^1.65.1"
