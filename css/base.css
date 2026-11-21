@@ -46,6 +46,14 @@
   --panel-w: 252px;
   --ticker-h: 27px;
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+
+  /* notches, rounded corners and gesture bars: 0 on screens without cutouts */
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-right: env(safe-area-inset-right, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left: env(safe-area-inset-left, 0px);
+  /* everything stacked above the NETFEED ticker offsets from this */
+  --ticker-space: calc(var(--ticker-h) + var(--safe-bottom));
 }
 
 /* Sector accents are mirrored as an attribute so a theme switch is a plain

@@ -10,7 +10,7 @@
   z-index: 100;
   display: grid;
   place-items: center;
-  padding: 24px;
+  padding: calc(24px + var(--safe-top)) calc(24px + var(--safe-right)) calc(24px + var(--safe-bottom)) calc(24px + var(--safe-left));
   background:
     radial-gradient(ellipse at 50% 44%, rgba(7, 18, 34, 0.5) 0%, rgba(2, 4, 10, 0.86) 62%, rgba(1, 2, 6, 0.96) 100%);
   backdrop-filter: blur(3px) saturate(0.85);

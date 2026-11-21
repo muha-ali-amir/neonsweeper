@@ -73,7 +73,7 @@ The grid hides hostile ICE nodes. Reveal every safe node to clear the sector.
 | **M / S** | Mute soundtrack / SFX |
 | **H** | Open the field manual |
 | **Esc** | Close a modal or report |
-| **Touch** | Tap to reveal, long-press (~0.4 s) to flag |
+| **Touch** | Tap to reveal, long-press (~0.4 s) to flag, pinch to zoom |
 
 The top-right buttons add fullscreen and direct audio toggles. The field manual also has soundtrack and SFX volume sliders.
 
@@ -84,7 +84,7 @@ The top-right buttons add fullscreen and direct audio toggles. The field manual 
 - **Procedural soundtrack and SFX** — punchy synthwave bass/arp/drums plus UI, flag, reveal, scan, defuse, win and loss sounds, all generated live with WebAudio. No audio files.
 - **Mission HUD** — sector time, remaining hostiles, score, threat index, grid stability, personal best and a live mission log.
 - **Run reports and bests** — animated end screens for wins and losses, automatic mine flagging on victory, and persistent records by difficulty/custom layout.
-- **Responsive layout** — side panels fold into a compact mobile readout and touch action bar; reduced-motion preferences are respected; music pauses when the tab is hidden.
+- **Responsive layout** — side panels fold into a compact mobile readout and touch action bar; the HUD, dialogs and ticker respect notches and gesture bars; touch devices render at a lighter resolution and particle budget; reduced-motion preferences are respected; music pauses when the tab is hidden.
 - **Fully self-contained** — works offline after the page loads. The only network requests are to the local server.
 - **Private by default** — no accounts, API keys, analytics or external services. Progress and settings stay in `localStorage`.
 

@@ -258,6 +258,14 @@ export class GameScene {
     this.cameraTween = null;
     this.userOrbited = false;
     this.lowPower = window.matchMedia('(pointer: coarse)').matches;
+    // touch devices get a lower resolution budget and lighter particle load
+    this.quality = {
+      maxPixelRatio: this.lowPower ? 1.3 : 1.8,
+      maxComposerRatio: this.lowPower ? 1.05 : 1.6,
+      sparks: this.lowPower ? 820 : 1300,
+      rings: this.lowPower ? 6 : 10,
+      flashes: this.lowPower ? 6 : 8,
+    };
 
     this.createRenderer();
     this.createScene();
@@ -284,7 +292,7 @@ export class GameScene {
     this.renderer.outputColorSpace = THREE.SRGBColorSpace;
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
     this.renderer.toneMappingExposure = 1.02;
-    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, this.lowPower ? 1.4 : 1.8));
+    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, this.quality.maxPixelRatio));
     this.renderer.domElement.className = 'webgl';
     this.canvas = this.renderer.domElement;
     this.container.appendChild(this.canvas);
@@ -304,7 +312,7 @@ export class GameScene {
     this.controls.enableDamping = true;
     this.controls.dampingFactor = 0.075;
     this.controls.enablePan = false;
-    this.controls.rotateSpeed = 0.55;
+    this.controls.rotateSpeed = this.lowPower ? 0.42 : 0.55;
     this.controls.zoomSpeed = 0.75;
     this.controls.minPolarAngle = 0.18;
     this.controls.maxPolarAngle = 1.28;
@@ -667,7 +675,7 @@ export class GameScene {
   buildPost() {
     const size = new THREE.Vector2(window.innerWidth, window.innerHeight);
     this.composer = new EffectComposer(this.renderer);
-    this.composer.setPixelRatio(Math.min(window.devicePixelRatio || 1, this.lowPower ? 1.25 : 1.6));
+    this.composer.setPixelRatio(Math.min(window.devicePixelRatio || 1, this.quality.maxComposerRatio));
     this.composer.setSize(size.x, size.y);
 
     this.renderPass = new RenderPass(this.scene, this.camera);
@@ -685,9 +693,9 @@ export class GameScene {
   }
 
   createEffects() {
-    this.sparks = new SparkPool(this.scene, this.textures.glow, 1300);
+    this.sparks = new SparkPool(this.scene, this.textures.glow, this.quality.sparks);
 
-    for (let i = 0; i < 10; i++) {
+    for (let i = 0; i < this.quality.rings; i++) {
       const mat = new THREE.MeshBasicMaterial({
         color: 0x23f4ff,
         transparent: true,
@@ -705,7 +713,7 @@ export class GameScene {
       this.fx.rings.push({ mesh, life: 0, max: 1, from: 0.3, to: 4 });
     }
 
-    for (let i = 0; i < 8; i++) {
+    for (let i = 0; i < this.quality.flashes; i++) {
       const mat = new THREE.SpriteMaterial({
         map: this.textures.glow,
         color: 0xffffff,
@@ -756,12 +764,19 @@ export class GameScene {
       this.composer.setSize(w, h);
       this.gradePass.uniforms.uResolution.value.set(w, h);
     }
+    const prevFit = this.fitDistance;
     this.fitDistance = this.computeFitDistance();
-    this.controls.minDistance = this.fitDistance * 0.58;
-    this.controls.maxDistance = this.fitDistance * 2.1;
+    this.applyZoomLimits();
     if (this.hasBoard && !this.cameraTween) {
       const dir = this.camera.position.clone().sub(this.controls.target).normalize();
-      const nextDist = clamp(this.camera.position.distanceTo(this.controls.target), this.fitDistance * 0.85, this.fitDistance * 1.3);
+      // keep whatever zoom the player chose: mobile toolbars collapse and fire
+      // resize mid-game, which would otherwise yank the camera back to fit
+      const ratio = prevFit > 0 ? this.camera.position.distanceTo(this.controls.target) / prevFit : 1;
+      const nextDist = clamp(
+        ratio * this.fitDistance,
+        this.controls.minDistance,
+        this.controls.maxDistance,
+      );
       this.camera.position.copy(this.controls.target).addScaledVector(dir, nextDist);
       this.controls.update();
     }
@@ -818,6 +833,14 @@ export class GameScene {
     return Math.max(7, hi * 1.035);
   }
 
+  /** Touch screens may zoom closer than a mouse, so dense grids stay tappable. */
+  applyZoomLimits() {
+    const floor = this.lowPower ? 0.44 : 0.58;
+    const ceiling = this.lowPower ? 2.4 : 2.1;
+    this.controls.minDistance = this.fitDistance * floor;
+    this.controls.maxDistance = this.fitDistance * ceiling;
+  }
+
   setAccent(hex) {
     this.accentHex = hex;
     this.accent = new THREE.Color(hex);
@@ -867,8 +890,7 @@ export class GameScene {
     this.applyMoodColors();
     this.controls.target.set(0, 0, 0);
     this.fitDistance = this.computeFitDistance();
-    this.controls.minDistance = this.fitDistance * 0.58;
-    this.controls.maxDistance = this.fitDistance * 2.1;
+    this.applyZoomLimits();
 
     if (!this.started) {
       this.setScenicCamera();
@@ -1769,15 +1791,35 @@ export class GameScene {
     }
   }
 
-  pick(clientX, clientY) {
+  pick(clientX, clientY, tolerance = 0) {
     if (!this.tileBodies || this.introActive || this.gameOver) return -1;
     const rect = this.canvas.getBoundingClientRect();
     this.pointerNdc.x = ((clientX - rect.left) / rect.width) * 2 - 1;
     this.pointerNdc.y = -((clientY - rect.top) / rect.height) * 2 + 1;
     this.raycaster.setFromCamera(this.pointerNdc, this.camera);
     const hits = this.raycaster.intersectObject(this.tileBodies, false);
-    if (!hits.length) return -1;
-    return hits[0].instanceId ?? -1;
+    if (hits.length) return hits[0].instanceId ?? -1;
+    if (tolerance <= 0) return -1;
+
+    // A fingertip is much wider than a cell on a dense grid: when the ray slips
+    // between nodes, snap to the closest hidden node centre within tolerance.
+    const v = this.tmpProbe || (this.tmpProbe = new THREE.Vector3());
+    let best = -1;
+    let bestDist = tolerance;
+    for (let i = 0; i < this.tiles.length; i += 1) {
+      const tile = this.tiles[i];
+      if (!tile || tile.revealed) continue;
+      v.set(tile.x, 0.35, tile.z).project(this.camera);
+      if (v.z > 1) continue;
+      const sx = rect.left + (v.x * 0.5 + 0.5) * rect.width;
+      const sy = rect.top + (-v.y * 0.5 + 0.5) * rect.height;
+      const d = Math.hypot(sx - clientX, sy - clientY);
+      if (d < bestDist) {
+        best = i;
+        bestDist = d;
+      }
+    }
+    return best;
   }
 
   neighborIndices(index) {

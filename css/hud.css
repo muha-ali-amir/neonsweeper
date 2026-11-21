@@ -14,7 +14,7 @@
   grid-template-columns: minmax(250px, 1fr) auto minmax(250px, 1fr);
   align-items: center;
   gap: 18px;
-  padding: calc(16px + env(safe-area-inset-top, 0px)) var(--hud-x) 20px;
+  padding: calc(16px + var(--safe-top)) calc(var(--hud-x) + var(--safe-right)) 20px calc(var(--hud-x) + var(--safe-left));
   pointer-events: none;
 }
 .hud-top::before {
@@ -326,7 +326,7 @@
 
 .panel {
   position: fixed;
-  top: calc(104px + env(safe-area-inset-top, 0px));
+  top: calc(104px + var(--safe-top));
   z-index: 20;
   display: flex;
   flex-direction: column;
@@ -345,8 +345,8 @@
   pointer-events: auto;
   transition: border-color 0.4s ease;
 }
-.panel-left { left: var(--hud-x); }
-.panel-right { right: var(--hud-x); }
+.panel-left { left: calc(var(--hud-x) + var(--safe-left)); }
+.panel-right { right: calc(var(--hud-x) + var(--safe-right)); }
 .panel::before {
   content: '';
   position: absolute;
@@ -891,9 +891,9 @@ body.sonar-mode canvas { cursor: crosshair !important; }
 .mobile-readout {
   display: none;
   position: fixed;
-  top: calc(112px + env(safe-area-inset-top, 0px));
-  left: 12px;
-  right: 12px;
+  top: calc(112px + var(--safe-top));
+  left: calc(12px + var(--safe-left));
+  right: calc(12px + var(--safe-right));
   z-index: 25;
   align-items: center;
   justify-content: space-between;
@@ -934,9 +934,9 @@ body.sonar-mode canvas { cursor: crosshair !important; }
 
 .hud-bottom {
   position: fixed;
-  left: var(--hud-x);
-  right: var(--hud-x);
-  bottom: calc(var(--ticker-h) + 14px);
+  left: calc(var(--hud-x) + var(--safe-left));
+  right: calc(var(--hud-x) + var(--safe-right));
+  bottom: calc(var(--ticker-space) + 14px);
   z-index: 26;
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
@@ -1066,7 +1066,8 @@ body.flag-mode .corner::after { background: var(--magenta); box-shadow: 0 0 8px 
   z-index: 28;
   display: flex;
   align-items: center;
-  height: var(--ticker-h);
+  height: var(--ticker-space);
+  padding-bottom: var(--safe-bottom);
   border-top: 1px solid rgba(125, 180, 225, 0.14);
   background: rgba(2, 5, 11, 0.9);
   font-family: var(--mono);
@@ -1125,8 +1126,8 @@ body.flag-mode .corner::after { background: var(--magenta); box-shadow: 0 0 8px 
 
 .toast-layer {
   position: fixed;
-  right: var(--hud-x);
-  bottom: calc(var(--ticker-h) + 68px);
+  right: calc(var(--hud-x) + var(--safe-right));
+  bottom: calc(var(--ticker-space) + 68px);
   z-index: 90;
   display: flex;
   flex-direction: column;

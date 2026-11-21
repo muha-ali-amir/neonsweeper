@@ -923,15 +923,33 @@ class NeonSweeperApp {
     const canvas = this.scene.canvas;
     canvas.style.cursor = 'grab';
 
+    // a fingertip covers several cells, so taps near a node snap to it
+    const TOUCH_SLOP = 24; // CSS px
+    const activePointers = new Set();
+    const pickAt = (event) => this.scene.pick(
+      event.clientX,
+      event.clientY,
+      event.pointerType === 'touch' ? TOUCH_SLOP : 0,
+    );
+
     canvas.addEventListener('contextmenu', (event) => event.preventDefault());
     canvas.addEventListener('auxclick', (event) => {
       if (event.button === 1) event.preventDefault();
     });
 
     canvas.addEventListener('pointerdown', (event) => {
+      // only fingers count here: a mouse can sit down while a tap is starting
+      if (event.pointerType === 'touch') activePointers.add(event.pointerId);
+      if (activePointers.size > 1) {
+        // second finger means pinch / two-finger orbit, never a tap
+        if (this.pointer) clearTimeout(this.pointer.longPressTimer);
+        this.pointer = null;
+        canvas.style.cursor = 'grab';
+        return;
+      }
       if (!this.canInteract()) return;
       if (event.button === 1) event.preventDefault();
-      const index = this.scene.pick(event.clientX, event.clientY);
+      const index = pickAt(event);
       this.pointer = {
         id: event.pointerId,
         x: event.clientX,
@@ -965,6 +983,7 @@ class NeonSweeperApp {
     });
 
     const finish = (event) => {
+      activePointers.delete(event.pointerId);
       const pointer = this.pointer;
       if (!pointer) return;
       clearTimeout(pointer.longPressTimer);
@@ -975,7 +994,7 @@ class NeonSweeperApp {
       const moved = Math.hypot(event.clientX - pointer.x, event.clientY - pointer.y);
       if (pointer.moved || moved > 9) return;
 
-      const index = this.scene.pick(event.clientX, event.clientY);
+      const index = pickAt(event);
       if (index < 0) return;
 
       if (pointer.pointerType === 'touch') {
@@ -995,7 +1014,8 @@ class NeonSweeperApp {
     };
 
     canvas.addEventListener('pointerup', finish);
-    canvas.addEventListener('pointercancel', () => {
+    canvas.addEventListener('pointercancel', (event) => {
+      activePointers.delete(event.pointerId);
       if (this.pointer) clearTimeout(this.pointer.longPressTimer);
       this.pointer = null;
       canvas.style.cursor = 'grab';
